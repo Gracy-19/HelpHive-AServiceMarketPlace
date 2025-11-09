@@ -1,0 +1,38 @@
+# Backend environment
+/helphive-backend/.env
+
+# Frontend environment
+/helphive-react/.env
+
+# Node modules (ignore installed packages for both frontend and backend)
+/helphive-backend/node_modules/
+/helphive-react/node_modules/
+
+# Optional: ignore any root .env if present
+.env
+
+## Common ignores (builds, caches, editor settings)
+# Environment variants
+.env.local
+.env.*.local
+
+# Build outputs
+/dist/
+/.next/
+/.vite/
+
+# Tooling caches
+/.parcel-cache/
+/.cache/
+
+# Coverage and logs
+/coverage/
+npm-debug.log*
+yarn-error.log*
+
+# IDE/editor settings
+/.vscode/
+/.idea/
+
+# macOS
+.DS_Store
