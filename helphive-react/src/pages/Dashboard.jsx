@@ -14,7 +14,10 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/bookings");
+        const res = await fetch(
+          `http://localhost:4000/api/bookings?clerkId=${user.id}`
+        );
+
         const data = await res.json();
         if (data.success) setBookings(data.bookings);
       } catch (err) {

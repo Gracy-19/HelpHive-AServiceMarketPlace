@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
+
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -8,29 +9,33 @@ import Booking from "./pages/Booking";
 import Profile from "./pages/Profile";
 import WorkerRegister from "./pages/WorkerRegister";
 import BookingDetails from "./pages/BookingDetails";
-import Providers from "./pages/Providers"; // ✅ new page that shows all workers
+import Providers from "./pages/Providers";
 
 function App() {
   return (
     <Routes>
-      {/* 🏠 Public Routes */}
+      {/* ✅ PUBLIC ROUTES */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
-        <Route path="/providers" element={<Providers />} />{" "}
+        <Route path="/providers" element={<Providers />} />
+
+        {/* Redirect /provider/:id to Providers page */}
         <Route
           path="/provider/:id"
           element={<Navigate to="/providers" replace />}
         />
-        {/* ✅ New workers page */}
-        <Route path="/booking" element={<Booking />} />{" "}
-        {/* ✅ Generic booking form */}
-        <Route path="/booking/:id" element={<Booking />} />{" "}
-        {/* ✅ Worker-specific booking */}
+
+        {/* ✅ Booking routes */}
+        <Route path="/booking" element={<Booking />} />
+        <Route path="/booking/:id" element={<Booking />} />
         <Route path="/booking/:id/view" element={<BookingDetails />} />
+
+        {/* ✅ FIX: Make worker-register PUBLIC */}
+        <Route path="/worker-register" element={<WorkerRegister />} />
       </Route>
 
-      {/* 🔒 Protected Routes */}
+      {/* ✅ PROTECTED ROUTES (Require Login) */}
       <Route
         element={
           <SignedIn>
@@ -40,10 +45,9 @@ function App() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/worker-register" element={<WorkerRegister />} />
       </Route>
 
-      {/* 🚫 Redirect if signed out */}
+      {/* 🚫 IF SIGNED OUT → Redirect to Home */}
       <Route
         path="*"
         element={

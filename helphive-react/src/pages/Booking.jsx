@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { Calendar, Clock, MapPin, Phone, FileText } from "lucide-react";
+import { useUser } from "@clerk/clerk-react"; // ✅ ADD THIS
 
 const Booking = () => {
-  const { id } = useParams(); // optional param
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useUser(); // ✅ GET CLERK USER
 
-  const [worker, setWorker] = useState(null); // for single worker
-  const [workersList, setWorkersList] = useState([]); // for dropdown list
+  const [worker, setWorker] = useState(null);
+  const [workersList, setWorkersList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
@@ -29,12 +31,13 @@ const Booking = () => {
     const fetchData = async () => {
       try {
         if (id) {
-          // single worker booking
           const res = await fetch(`http://localhost:4000/api/workers/${id}`);
           const data = await res.json();
           if (!data.success || !data.worker)
             throw new Error("Worker not found");
+
           setWorker(data.worker);
+
           setFormData((prev) => ({
             ...prev,
             providerId: data.worker._id,
@@ -42,7 +45,6 @@ const Booking = () => {
             service: data.worker.service,
           }));
         } else {
-          // all workers for dropdown
           const res = await fetch(`http://localhost:4000/api/workers`);
           const data = await res.json();
           if (!data.success) throw new Error("Failed to load providers");
@@ -63,10 +65,9 @@ const Booking = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // when selecting provider from dropdown
     if (name === "providerId") {
       const selected = workersList.find((w) => w._id === value);
-      setWorker(selected || null); // ✅ update selected worker state
+      setWorker(selected || null);
 
       setFormData((prev) => ({
         ...prev,
@@ -80,7 +81,7 @@ const Booking = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Submit booking
+  // ✅ Submit booking (CLERK ID ADDED)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -89,6 +90,7 @@ const Booking = () => {
       const amount = hourlyRate * parseInt(formData.duration || 1);
 
       const payload = {
+        clerkId: user?.id || "guest", // ✅ FIX: SEND REAL CLERK ID
         providerId: formData.providerId,
         service: formData.service,
         date: formData.date,
@@ -117,7 +119,7 @@ const Booking = () => {
     }
   };
 
-  // 🌀 Loading
+  // ✅ Loading
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-600 text-lg">
@@ -142,7 +144,7 @@ const Booking = () => {
     );
   }
 
-  // ✅ Booking Confirmed
+  // ✅ Booking confirmed UI
   if (bookingConfirmed) {
     return (
       <div className="max-w-2xl mx-auto px-6 py-24 text-center">
@@ -163,30 +165,32 @@ const Booking = () => {
     );
   }
 
-  // ✅ Booking Form
+  // ✅ Render form
   return (
     <section className="min-h-screen bg-gradient-to-b from-brand-300/10 via-white to-brand-900/5 py-20 px-6">
       <div className="max-w-2xl mx-auto bg-white/90 backdrop-blur-md border border-gray-100 rounded-3xl shadow-lg p-8 md:p-10">
         <h1 className="text-3xl md:text-4xl font-extrabold text-brand-900 mb-2">
           {id ? `Book ${formData.providerName}` : "Book a Service"}
         </h1>
+
         <p className="text-gray-600 mb-8">
           Fill out the form below to confirm your booking.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-7">
-          {/* Choose Provider */}
+          {/* ✅ Provider Dropdown */}
           {!id && (
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Choose Provider
               </label>
+
               <select
                 name="providerId"
                 value={formData.providerId}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-brand-300/40 rounded-xl focus:ring-2 focus:ring-brand-300 outline-none transition"
+                className="w-full px-4 py-3 border border-brand-300/40 rounded-xl"
               >
                 <option value="">Select provider</option>
                 {workersList.map((w) => (
@@ -207,10 +211,11 @@ const Booking = () => {
               type="text"
               value={formData.providerName}
               disabled
-              className="w-full px-4 py-3 border border-brand-300/40 rounded-xl bg-gray-100 text-gray-700"
+              className="w-full px-4 py-3 border rounded-xl bg-gray-100 text-gray-700"
             />
           </div>
 
+          {/* Service */}
           <div>
             <label className="block mb-2 text-sm font-semibold text-gray-700">
               Service Type
@@ -219,7 +224,7 @@ const Booking = () => {
               type="text"
               value={formData.service}
               disabled
-              className="w-full px-4 py-3 border border-brand-300/40 rounded-xl bg-gray-100 text-gray-700"
+              className="w-full px-4 py-3 border rounded-xl bg-gray-100 text-gray-700"
             />
           </div>
 
@@ -237,10 +242,11 @@ const Booking = () => {
                   value={formData.date}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-brand-300/40 rounded-xl focus:ring-2 focus:ring-brand-300 outline-none transition"
+                  className="w-full pl-10 pr-4 py-3 border rounded-xl"
                 />
               </div>
             </div>
+
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Preferred Time
@@ -253,7 +259,7 @@ const Booking = () => {
                   value={formData.time}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-4 py-3 border border-brand-300/40 rounded-xl focus:ring-2 focus:ring-brand-300 outline-none transition"
+                  className="w-full pl-10 pr-4 py-3 border rounded-xl"
                 />
               </div>
             </div>
@@ -273,7 +279,7 @@ const Booking = () => {
                 value={formData.address}
                 onChange={handleChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-brand-300/40 rounded-xl focus:ring-2 focus:ring-brand-300 outline-none transition"
+                className="w-full pl-10 pr-4 py-3 border rounded-xl"
               />
             </div>
           </div>
@@ -292,7 +298,7 @@ const Booking = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-brand-300/40 rounded-xl focus:ring-2 focus:ring-brand-300 outline-none transition"
+                className="w-full pl-10 pr-4 py-3 border rounded-xl"
               />
             </div>
           </div>
@@ -306,28 +312,29 @@ const Booking = () => {
               <FileText className="absolute left-3 top-3 text-brand-900 w-5 h-5" />
               <textarea
                 name="notes"
-                placeholder="Any special instructions..."
                 value={formData.notes}
                 onChange={handleChange}
                 rows="3"
-                className="w-full pl-10 pr-4 py-3 border border-brand-300/40 rounded-xl focus:ring-2 focus:ring-brand-300 outline-none resize-none transition"
+                className="w-full pl-10 pr-4 py-3 border rounded-xl resize-none"
               />
             </div>
           </div>
 
-          {/* ✅ Dynamic Price */}
-          <div className="bg-brand-300/10 border border-brand-300/30 rounded-2xl p-5 shadow-sm">
+          {/* Price Summary */}
+          <div className="bg-brand-300/10 border rounded-2xl p-5">
             <div className="flex justify-between text-gray-700 mb-2">
               <span>Base Price (per hour):</span>
               <span className="font-semibold">
                 ₹{worker?.hourlyRate || 500}
               </span>
             </div>
+
             <div className="flex justify-between text-gray-700 mb-2">
               <span>Duration:</span>
-              <span className="font-semibold">{formData.duration} hour(s)</span>
+              <span className="font-semibold">{formData.duration} hr</span>
             </div>
-            <div className="border-t border-brand-300/30 mt-2 pt-2 flex justify-between">
+
+            <div className="border-t mt-2 pt-2 flex justify-between">
               <span className="text-lg font-bold text-brand-900">
                 Estimated Total:
               </span>
@@ -349,7 +356,7 @@ const Booking = () => {
             <label htmlFor="terms" className="text-sm text-gray-600">
               I agree to the{" "}
               <a href="#" className="text-brand-900 hover:underline">
-                terms and conditions
+                terms
               </a>{" "}
               and{" "}
               <a href="#" className="text-brand-900 hover:underline">
@@ -362,16 +369,13 @@ const Booking = () => {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full bg-brand-900 text-white py-3.5 rounded-full hover:bg-brand-300 hover:text-brand-900 transition-all duration-300 font-semibold text-lg shadow-md"
+            className="w-full bg-brand-900 text-white py-3.5 rounded-full text-lg"
           >
             Confirm Booking
           </button>
 
           <p className="text-center text-sm text-gray-600">
-            <Link
-              to="/search"
-              className="text-brand-900 hover:underline font-medium"
-            >
+            <Link to="/search" className="text-brand-900 hover:underline">
               ← Browse more providers
             </Link>
           </p>

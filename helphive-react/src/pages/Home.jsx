@@ -61,7 +61,7 @@ const Home = () => {
           </div>
         </div>
       </main>
-
+                                                      
       {/* Features Section */}
       <section className="bg-brand-900 text-white py-16 px-6 md:px-20 rounded-t-3xl shadow-inner">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">

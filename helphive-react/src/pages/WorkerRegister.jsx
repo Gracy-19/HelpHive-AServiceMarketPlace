@@ -35,7 +35,7 @@ const WorkerRegister = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🧠 handle form field & file change
+  // ✅ Handle field & file change
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     setFormData((prev) => ({
@@ -44,7 +44,7 @@ const WorkerRegister = () => {
     }));
   };
 
-  // 🚀 submit to backend
+  // ✅ Submit to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -56,7 +56,6 @@ const WorkerRegister = () => {
         if (formData[key]) fd.append(key, formData[key]);
       });
 
-      // attach clerkId if signed in
       if (user?.id) fd.append("clerkId", user.id);
 
       const res = await fetch(
@@ -86,11 +85,11 @@ const WorkerRegister = () => {
     }
   };
 
-  // ✅ success UI
+  // ✅ Success Screen
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-brand-300/20 via-white to-brand-900/10 flex flex-col">
-        <Navbar />
+        <Navbar hideExtraLinks /> {/* ✅ Hide Navbar Links */}
         <div className="flex-grow flex flex-col justify-center items-center px-6 py-20 text-center">
           <div className="bg-green-100 rounded-full w-24 h-24 flex items-center justify-center mb-6">
             <CheckCircle className="text-green-600 w-12 h-12" />
@@ -110,11 +109,10 @@ const WorkerRegister = () => {
     );
   }
 
-  // 🧱 main form
+  // ✅ Main Form
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-300/20 via-white to-brand-900/10 text-gray-800">
-      <Navbar />
-
+      <Navbar hideExtraLinks /> {/* ✅ Hide Navbar Links */}
       <div className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
@@ -186,7 +184,7 @@ const WorkerRegister = () => {
             required
           />
 
-          {/* PROFESSIONAL INFO */}
+          {/* PROFESSIONAL INFORMATION */}
           <SectionHeader
             icon={<ClipboardList />}
             title="Professional Information"
@@ -305,6 +303,7 @@ const WorkerRegister = () => {
             >
               {loading ? "Submitting..." : "Submit Application"}
             </button>
+
             <Link
               to="/"
               className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-full font-semibold text-center hover:bg-gray-50 transition"
@@ -325,7 +324,8 @@ const WorkerRegister = () => {
 
 export default WorkerRegister;
 
-// Reusable Components
+/* ✅ Reusable Components */
+
 const SectionHeader = ({ icon, title }) => (
   <div className="flex items-center gap-3 mb-6">
     <div className="p-2 bg-brand-900/10 rounded-lg text-brand-900">{icon}</div>

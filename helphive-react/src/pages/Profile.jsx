@@ -2,43 +2,47 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { MapPin, Mail, Phone } from "lucide-react";
 
+const API = "http://localhost:4000";
+
 const Profile = () => {
   const { user } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [totalBookings, setTotalBookings] = useState(0);
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
   });
 
-  // ✅ Load user + total bookings from backend
+  // ✅ Load user + total bookings
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (!user) return;
+
         const clerkId = user.id;
 
-        // Fetch total bookings
-        const res = await fetch(
-          `http://localhost:4000/api/bookings?clerkId=${clerkId}`
-        );
+        // ✅ Fetch total bookings from backend filtered by clerkId
+        const res = await fetch(`${API}/api/bookings?clerkId=${clerkId}`);
         const data = await res.json();
-        if (data.success) {
-          setTotalBookings(data.bookings.length || 0);
-        }
 
-        // Load Clerk + local info
+        if (data.success) setTotalBookings(data.bookings.length);
+
+        // ✅ Load Clerk data safely
         setFormData({
-          fullName: user.fullName || localStorage.getItem("userFullName") || "",
+          fullName:
+            user.fullName ||
+            `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+            user.username ||
+            "User",
+
           email:
             user.primaryEmailAddress?.emailAddress ||
-            localStorage.getItem("userEmail") ||
-            "",
-          phone:
-            user.primaryPhoneNumber?.phoneNumber ||
-            localStorage.getItem("userPhone") ||
-            "",
+            user.emailAddresses?.[0]?.emailAddress ||
+            "No Email Found",
+
+          phone: user.primaryPhoneNumber?.phoneNumber || "", // user may not have phone in clerk
         });
       } catch (err) {
         console.error("❌ Error loading profile:", err);
@@ -48,31 +52,32 @@ const Profile = () => {
     fetchData();
   }, [user]);
 
-  // ✅ Handle input changes
+  // ✅ Input handler
   const handleChange = (e) => {
-    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [e.target.name]: e.target.value,
     }));
   };
 
-  // ✅ Save phone to localStorage (simulate DB update)
+  // ✅ Save phone number to backend
   const handleSave = async (e) => {
     e.preventDefault();
     try {
       const clerkId = user.id;
-      const res = await fetch(`http://localhost:4000/api/users/${clerkId}`, {
+
+      const res = await fetch(`${API}/api/users/${clerkId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: formData.phone }),
       });
 
       const data = await res.json();
+
       if (data.success) {
-        alert("✅ Profile updated successfully!");
+        alert("✅ Phone updated successfully!");
       } else {
-        alert("❌ Failed to update profile");
+        alert("❌ Failed to update phone");
       }
 
       setIsEditing(false);
@@ -85,32 +90,32 @@ const Profile = () => {
   return (
     <section className="min-h-screen bg-gradient-to-b from-brand-300/10 via-white to-brand-900/5 py-20 px-6">
       <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
-        {/* 🧾 Profile Card */}
+        {/* ✅ PROFILE CARD */}
         <div className="bg-white/90 backdrop-blur-md border border-gray-100 rounded-3xl shadow-lg overflow-hidden">
           <div className="h-32 bg-gradient-to-r from-brand-300 to-brand-900"></div>
+
           <div className="px-6 pb-8 text-center -mt-10 relative">
             <div className="w-28 h-28 mx-auto mb-4 rounded-full overflow-hidden ring-4 ring-white shadow-md">
               {user?.imageUrl ? (
                 <img
                   src={user.imageUrl}
-                  alt="User Avatar"
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-brand-900 flex items-center justify-center text-white text-3xl">
+                <div className="w-full h-full bg-brand-900 text-white flex items-center justify-center text-3xl">
                   👤
                 </div>
               )}
             </div>
+
             <h2 className="text-2xl font-extrabold text-brand-900">
-              {formData.fullName || "User"}
+              {formData.fullName}
             </h2>
-            <p className="text-gray-600 text-sm">
-              {formData.email || "No Email"}
-            </p>
+
+            <p className="text-gray-600 text-sm">{formData.email}</p>
+
             <p className="text-gray-500 text-sm mt-1 flex justify-center items-center gap-1">
-              <MapPin className="w-4 h-4 text-brand-300" />{" "}
-              {user?.publicMetadata?.city || "Unknown City"}
+              <MapPin className="w-4 h-4 text-brand-300" /> Unknown City
             </p>
 
             <div className="mt-6 pt-4 border-t border-gray-200">
@@ -118,12 +123,12 @@ const Profile = () => {
                 Member Since
               </p>
               <p className="font-semibold text-brand-900">
-                {new Date(user?.createdAt || Date.now()).toLocaleDateString()}
+                {new Date(user?.createdAt).toLocaleDateString()}
               </p>
             </div>
           </div>
 
-          {/* 📊 Stats */}
+          {/* ✅ STATS */}
           <div className="px-6 pb-8 space-y-4">
             <div className="bg-brand-300/10 rounded-2xl py-4 text-center">
               <p className="text-3xl font-bold text-brand-900">
@@ -131,6 +136,7 @@ const Profile = () => {
               </p>
               <p className="text-sm text-gray-600">Total Bookings</p>
             </div>
+
             <div className="bg-brand-300/10 rounded-2xl py-4 text-center">
               <p className="text-3xl font-bold text-brand-900">✅</p>
               <p className="text-sm text-gray-600">Verified User</p>
@@ -138,13 +144,13 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* 🧠 Editable Profile Form */}
+        {/* ✅ EDITABLE FORM */}
         <div className="md:col-span-2 space-y-8">
-          {/* Header */}
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-extrabold text-brand-900">
               Your Profile
             </h1>
+
             <button
               onClick={() => setIsEditing(!isEditing)}
               className={`px-5 py-2.5 rounded-full font-semibold shadow-md transition ${
@@ -164,6 +170,7 @@ const Profile = () => {
             <h3 className="text-lg font-bold text-brand-900 mb-4">
               Personal Information
             </h3>
+
             <div className="grid md:grid-cols-2 gap-5">
               <InputField
                 label="Full Name"
@@ -171,6 +178,7 @@ const Profile = () => {
                 value={formData.fullName}
                 disabled
               />
+
               <InputField
                 label="Email"
                 name="email"
@@ -178,6 +186,7 @@ const Profile = () => {
                 disabled
                 icon={<Mail className="w-4 h-4 text-brand-900" />}
               />
+
               <InputField
                 label="Phone"
                 name="phone"
@@ -205,7 +214,7 @@ const Profile = () => {
   );
 };
 
-// ✅ Reusable Input Component
+// ✅ Input Component
 const InputField = ({ label, name, value, onChange, disabled, icon }) => (
   <div className="relative">
     <label className="block mb-2 text-sm font-semibold text-gray-700">
