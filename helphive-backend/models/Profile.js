@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const ProfileSchema = new mongoose.Schema({
   userId: { type: String },
@@ -9,4 +9,6 @@ const ProfileSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('Profile', ProfileSchema);
+const Profile = mongoose.model("Profile", ProfileSchema);
+
+export default Profile;
