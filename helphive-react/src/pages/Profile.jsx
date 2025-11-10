@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { MapPin, Mail, Phone } from "lucide-react";
 
-const API = "http://localhost:4000";
+// ✅ Load backend URL from .env file
+const API = import.meta.env.VITE_BACKEND_URL;
 
 const Profile = () => {
   const { user } = useUser();
@@ -42,7 +43,7 @@ const Profile = () => {
             user.emailAddresses?.[0]?.emailAddress ||
             "No Email Found",
 
-          phone: user.primaryPhoneNumber?.phoneNumber || "", // user may not have phone in clerk
+          phone: user.primaryPhoneNumber?.phoneNumber || "",
         });
       } catch (err) {
         console.error("❌ Error loading profile:", err);
@@ -90,6 +91,7 @@ const Profile = () => {
   return (
     <section className="min-h-screen bg-gradient-to-b from-brand-300/10 via-white to-brand-900/5 py-20 px-6">
       <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10">
+        
         {/* ✅ PROFILE CARD */}
         <div className="bg-white/90 backdrop-blur-md border border-gray-100 rounded-3xl shadow-lg overflow-hidden">
           <div className="h-32 bg-gradient-to-r from-brand-300 to-brand-900"></div>
@@ -220,7 +222,9 @@ const InputField = ({ label, name, value, onChange, disabled, icon }) => (
     <label className="block mb-2 text-sm font-semibold text-gray-700">
       {label}
     </label>
+
     {icon && <div className="absolute left-3 top-10">{icon}</div>}
+
     <input
       type="text"
       name={name}
