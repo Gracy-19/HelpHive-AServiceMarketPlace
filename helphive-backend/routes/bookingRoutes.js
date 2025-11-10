@@ -76,6 +76,21 @@ router.get("/:id", async (req, res) => {
     });
   }
 });
+// 🧾 GET — All bookings for a worker
+router.get("/worker/:workerId", async (req, res) => {
+  try {
+    const { workerId } = req.params;
+
+    const bookings = await Booking.find({ providerId: workerId })
+      .populate("providerId", "fullName service city")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, bookings });
+  } catch (err) {
+    console.error("❌ Fetch worker bookings error:", err);
+    res.status(500).json({ success: false, message: "Failed to fetch worker bookings" });
+  }
+});
 
 //
 // ✅ POST — Create a new booking
