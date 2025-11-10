@@ -1,441 +1,295 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  User,
-  Mail,
-  MapPin,
-  Phone,
-  ClipboardList,
-  FileText,
-  Upload,
-  Briefcase,
-  CheckCircle,
-} from "lucide-react";
+import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
-import Navbar from "../components/Navbar";
+import { Calendar, MapPin, Phone, User, FileText, Edit3 } from "lucide-react";
 
 // ✅ Load backend URL from .env
 const API = import.meta.env.VITE_BACKEND_URL;
 
-const WorkerRegister = () => {
+const WorkerDashboard = () => {
   const { user } = useUser();
+  const [worker, setWorker] = useState(null);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
-    email: "",
     phone: "",
-    service: "",
-    experience: "",
-    address: "",
     city: "",
-    hourlyRate: "",
-    certifications: "",
+    address: "",
     bio: "",
-    photo: null,
-    documents: null,
+    hourlyRate: "",
   });
 
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // ✅ Load worker details + bookings
+  useEffect(() => {
+    const loadWorkerData = async () => {
+      try {
+        if (!user) return;
 
-  // ✅ Handle field & file change
+        // ✅ STEP 1 - Find worker by Clerk ID
+        const workerRes = await fetch(`${API}/api/workers/clerk/${user.id}`);
+        const workerData = await workerRes.json();
+
+        if (!workerData.success || !workerData.worker) {
+          setLoading(false);
+          return;
+        }
+
+        setWorker(workerData.worker);
+
+        // ✅ Pre-fill form data
+        setFormData({
+          fullName: workerData.worker.fullName || "",
+          phone: workerData.worker.phone || "",
+          city: workerData.worker.city || "",
+          address: workerData.worker.address || "",
+          bio: workerData.worker.bio || "",
+          hourlyRate: workerData.worker.hourlyRate || "",
+        });
+
+        // ✅ STEP 2 - Fetch worker bookings
+        const bookingRes = await fetch(
+          `${API}/api/bookings/worker/${workerData.worker._id}`
+        );
+        const bookingData = await bookingRes.json();
+
+        if (bookingData.success) {
+          setBookings(bookingData.bookings);
+        }
+      } catch (err) {
+        console.error("❌ Worker dashboard error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadWorkerData();
+  }, [user]);
+
+  // ✅ Handle edit form change
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
+    const { name, value } = e.target;
+    setFormData((p) => ({ ...p, [name]: value }));
   };
 
-  // ✅ Submit to backend
-  const handleSubmit = async (e) => {
+  // ✅ Save updated worker info
+  const handleSave = async (e) => {
     e.preventDefault();
 
     try {
-      setLoading(true);
-
-      const fd = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (formData[key]) fd.append(key, formData[key]);
-      });
-
-      if (user?.id) fd.append("clerkId", user.id);
-
-      const res = await fetch(`${API}/api/workers`, {
-        method: "POST",
-        body: fd,
+      const res = await fetch(`${API}/api/workers/${worker._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || "Submission failed");
+      if (data.success) {
+        alert("✅ Profile updated!");
+        setWorker(data.worker);
+        setEditing(false);
+      } else {
+        alert("❌ Update failed");
       }
-
-      setSubmitted(true);
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 3000);
     } catch (err) {
-      alert("Error: " + err.message);
       console.error(err);
-    } finally {
-      setLoading(false);
+      alert("Server error");
     }
   };
 
-  // ✅ Success Screen
-  if (submitted) {
+  if (loading)
     return (
-      <div className="min-h-screen bg-gradient-to-b from-brand-300/20 via-white to-brand-900/10 flex flex-col">
-        <Navbar hideExtraLinks />
-        <div className="flex-grow flex flex-col justify-center items-center px-6 py-20 text-center">
-          <div className="bg-green-100 rounded-full w-24 h-24 flex items-center justify-center mb-6">
-            <CheckCircle className="text-green-600 w-12 h-12" />
-          </div>
-          <h2 className="text-3xl font-bold text-brand-900 mb-3">
-            Application Submitted!
-          </h2>
-          <p className="text-gray-600 max-w-md">
-            Thank you for registering as a service provider. Our team will
-            review your application and contact you within 24–48 hours.
-          </p>
-          <p className="text-sm text-gray-500 mt-4">
-            Redirecting to home page...
-          </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        Loading...
       </div>
     );
-  }
+
+  if (!worker)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">
+        You are not registered as a worker yet.
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-brand-300/20 via-white to-brand-900/10 text-gray-800">
-      <Navbar hideExtraLinks />
+    <div className="max-w-6xl mx-auto px-6 py-16">
+      
+      {/* ✅ HEADER */}
+      <div className="flex justify-between items-center mb-10">
+        <h1 className="text-4xl font-extrabold text-brand-900">
+          Worker Dashboard
+        </h1>
 
-      <div className="max-w-5xl mx-auto px-6 py-24">
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-brand-900/10 rounded-full">
-              <Briefcase className="text-brand-900 w-8 h-8" />
-            </div>
-          </div>
-          <h1 className="text-4xl font-extrabold text-brand-900 mb-3">
-            Join HelpHive as a Service Provider
-          </h1>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Register to start offering your services and connect with thousands
-            of clients through HelpHive.
-          </p>
+        <button
+          onClick={() => setEditing(!editing)}
+          className="px-4 py-2 bg-brand-900 text-white rounded-full flex items-center gap-2 hover:bg-brand-300 hover:text-brand-900 transition"
+        >
+          <Edit3 className="w-4 h-4" />
+          {editing ? "Cancel" : "Edit Profile"}
+        </button>
+      </div>
+
+      {/* ✅ WORKER PROFILE FORM */}
+      <form
+        onSubmit={handleSave}
+        className="bg-white/90 p-8 rounded-2xl shadow-md border border-gray-200 mb-12"
+      >
+        <h2 className="text-2xl font-semibold mb-6 text-brand-900">
+          Your Worker Profile
+        </h2>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Full Name */}
+          <Field
+            label="Full Name"
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
+            disabled={!editing}
+          />
+
+          {/* Phone */}
+          <Field
+            label="Phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            disabled={!editing}
+          />
+
+          {/* City */}
+          <Field
+            label="City"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            disabled={!editing}
+          />
+
+          {/* Hourly Rate */}
+          <Field
+            label="Hourly Rate (₹)"
+            name="hourlyRate"
+            value={formData.hourlyRate}
+            onChange={handleChange}
+            disabled={!editing}
+          />
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white/90 backdrop-blur-md rounded-3xl shadow-lg border border-gray-100 p-10 space-y-12 transition-all"
-        >
-          {/* PERSONAL INFORMATION */}
-          <SectionHeader icon={<User />} title="Personal Information" />
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <TextField
-              label="Full Name"
-              name="fullName"
-              placeholder="Your full name"
-              value={formData.fullName}
-              onChange={handleChange}
-              required
-            />
-
-            <TextField
-              label="Email"
-              name="email"
-              type="email"
-              placeholder="your@email.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              icon={<Mail className="text-gray-400 w-4 h-4" />}
-            />
-
-            <TextField
-              label="Phone Number"
-              name="phone"
-              type="tel"
-              placeholder="+91 XXXXX XXXXX"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              icon={<Phone className="text-gray-400 w-4 h-4" />}
-            />
-
-            <TextField
-              label="City"
-              name="city"
-              placeholder="Your city"
-              value={formData.city}
-              onChange={handleChange}
-              required
-              icon={<MapPin className="text-gray-400 w-4 h-4" />}
-            />
-          </div>
-
-          <TextArea
-            label="Address"
+        {/* Address */}
+        <div className="mt-6">
+          <label className="font-semibold text-gray-700">Address</label>
+          <textarea
             name="address"
-            placeholder="Full address"
             value={formData.address}
             onChange={handleChange}
-            required
+            disabled={!editing}
+            rows="2"
+            className="w-full mt-1 border px-3 py-2 rounded-lg"
           />
+        </div>
 
-          {/* PROFESSIONAL INFORMATION */}
-          <SectionHeader icon={<ClipboardList />} title="Professional Information" />
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <SelectField
-              label="Service Type"
-              name="service"
-              value={formData.service}
-              onChange={handleChange}
-              required
-              options={[
-                "Babysitting",
-                "Cleaning / Maid",
-                "Cooking",
-                "Laundry",
-                "Tutoring",
-                "Pet Care",
-              ]}
-            />
-
-            <TextField
-              label="Hourly Rate (₹)"
-              name="hourlyRate"
-              type="number"
-              placeholder="e.g., 500"
-              value={formData.hourlyRate}
-              onChange={handleChange}
-              required
-            />
-
-            <SelectField
-              label="Experience (Years)"
-              name="experience"
-              value={formData.experience}
-              onChange={handleChange}
-              required
-              options={[
-                "Less than 1 year",
-                "1–3 years",
-                "3–5 years",
-                "5+ years",
-              ]}
-            />
-
-            <TextField
-              label="Certifications (optional)"
-              name="certifications"
-              placeholder="e.g., First Aid, CPR"
-              value={formData.certifications}
-              onChange={handleChange}
-            />
-          </div>
-
-          <TextArea
-            label="Professional Bio"
+        {/* Bio */}
+        <div className="mt-6">
+          <label className="font-semibold text-gray-700">Professional Bio</label>
+          <textarea
             name="bio"
-            placeholder="Tell clients about your skills and experience..."
             value={formData.bio}
             onChange={handleChange}
-            required
+            disabled={!editing}
+            rows="3"
+            className="w-full mt-1 border px-3 py-2 rounded-lg"
           />
+        </div>
 
-          {/* DOCUMENTS */}
-          <SectionHeader icon={<FileText />} title="Documents & Media" />
+        {editing && (
+          <button
+            type="submit"
+            className="mt-6 w-full bg-brand-900 text-white py-3 rounded-full font-semibold hover:bg-brand-300 hover:text-brand-900 transition"
+          >
+            Save Changes
+          </button>
+        )}
+      </form>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <FileUpload
-              label="Profile Photo"
-              name="photo"
-              accept="image/*"
-              file={formData.photo}
-              onChange={handleChange}
-              icon={<Upload className="w-5 h-5 text-brand-900" />}
-            />
+      {/* ✅ BOOKINGS TABLE */}
+      <div className="bg-white/90 rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+        <div className="px-6 py-5 border-b">
+          <h2 className="text-2xl font-semibold">Bookings Assigned to You</h2>
+        </div>
 
-            <FileUpload
-              label="Proof Documents"
-              name="documents"
-              accept=".pdf,.doc,.docx"
-              file={formData.documents}
-              onChange={handleChange}
-              icon={<Upload className="w-5 h-5 text-brand-900" />}
-            />
-          </div>
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-700 uppercase">
+            <tr>
+              <Th label="Customer" />
+              <Th label="Date" />
+              <Th label="Address" />
+              <Th label="Phone" />
+              <Th label="Notes" />
+              <Th label="Status" />
+            </tr>
+          </thead>
 
-          {/* AGREEMENTS */}
-          <div className="bg-brand-300/10 border border-brand-300/30 rounded-2xl p-6 space-y-4">
-            <Checkbox
-              id="terms"
-              label={
-                <>
-                  I agree to HelpHive’s{" "}
-                  <a href="#" className="text-brand-900 hover:underline">
-                    Terms of Service
-                  </a>{" "}
-                  and{" "}
-                  <a href="#" className="text-brand-900 hover:underline">
-                    Privacy Policy
-                  </a>
-                  .
-                </>
-              }
-            />
+          <tbody>
+            {bookings.map((b) => (
+              <tr key={b._id} className="border-b hover:bg-gray-50">
+                <Td icon={<User />} text={b.customerName || "Customer"} />
+                <Td icon={<Calendar />} text={`${b.date} — ${b.time}`} />
+                <Td icon={<MapPin />} text={b.address} />
+                <Td icon={<Phone />} text={b.phone} />
+                <Td icon={<FileText />} text={b.notes || "—"} />
 
-            <Checkbox
-              id="verification"
-              label="I confirm that all provided information is accurate and authentic."
-            />
-          </div>
+                <td className="px-6 py-4">
+                  <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs">
+                    {b.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
 
-          {/* BUTTONS */}
-          <div className="flex flex-col md:flex-row gap-4 pt-6">
-            <button
-              type="submit"
-              disabled={loading}
-              className={`flex-1 bg-brand-900 text-white py-3 rounded-full font-semibold shadow-md transition-all ${
-                loading
-                  ? "opacity-70 cursor-not-allowed"
-                  : "hover:bg-brand-300 hover:text-brand-900"
-              }`}
-            >
-              {loading ? "Submitting..." : "Submit Application"}
-            </button>
-
-            <Link
-              to="/"
-              className="flex-1 border-2 border-gray-300 text-gray-700 py-3 rounded-full font-semibold text-center hover:bg-gray-50 transition"
-            >
-              Cancel
-            </Link>
-          </div>
-
-          <p className="text-center text-sm text-gray-500 pt-2">
-            Applications are verified within 24–48 hours. You’ll be notified once approved.
-          </p>
-        </form>
+            {bookings.length === 0 && (
+              <tr>
+                <td
+                  colSpan="6"
+                  className="py-10 text-center text-gray-500 italic"
+                >
+                  No bookings assigned yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 };
 
-export default WorkerRegister;
+export default WorkerDashboard;
 
-/* ✅ Reusable Components */
+/* ✅ REUSABLE COMPONENTS */
 
-const SectionHeader = ({ icon, title }) => (
-  <div className="flex items-center gap-3 mb-6">
-    <div className="p-2 bg-brand-900/10 rounded-lg text-brand-900">{icon}</div>
-    <h2 className="text-2xl font-bold text-brand-900">{title}</h2>
-  </div>
-);
-
-const TextField = ({
-  label,
-  name,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  required,
-  icon,
-}) => (
+const Field = ({ label, name, value, onChange, disabled }) => (
   <div>
-    <label className="block mb-2 font-medium text-gray-700">{label}</label>
-    <div className="relative">
-      {icon && <div className="absolute left-3 top-3">{icon}</div>}
-      <input
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        required={required}
-        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 ring-brand-300 outline-none ${
-          icon ? "pl-10" : ""
-        }`}
-      />
-    </div>
-  </div>
-);
-
-const TextArea = ({ label, name, value, onChange, placeholder, required }) => (
-  <div>
-    <label className="block mb-2 font-medium text-gray-700">{label}</label>
-    <textarea
+    <label className="font-semibold text-gray-700">{label}</label>
+    <input
+      type="text"
       name={name}
+      disabled={disabled}
       value={value}
       onChange={onChange}
-      placeholder={placeholder}
-      required={required}
-      rows="3"
-      className="w-full px-4 py-2 border rounded-lg focus:ring-2 ring-brand-300 outline-none resize-none"
+      className="w-full mt-1 border px-3 py-2 rounded-lg disabled:bg-gray-100"
     />
   </div>
 );
 
-const SelectField = ({ label, name, value, onChange, options, required }) => (
-  <div>
-    <label className="block mb-2 font-medium text-gray-700">{label}</label>
-    <select
-      name={name}
-      value={value}
-      onChange={onChange}
-      required={required}
-      className="w-full px-4 py-2 border rounded-lg focus:ring-2 ring-brand-300 outline-none"
-    >
-      <option value="">Select option</option>
-      {options.map((opt) => (
-        <option key={opt} value={opt}>
-          {opt}
-        </option>
-      ))}
-    </select>
-  </div>
+const Th = ({ label }) => (
+  <th className="px-6 py-3 text-left font-semibold text-xs">{label}</th>
 );
 
-const FileUpload = ({ label, name, accept, file, onChange, icon }) => (
-  <div>
-    <label className="block mb-2 font-medium text-gray-700">{label}</label>
-
-    <div className="border-2 border-dashed border-brand-300 rounded-lg p-6 text-center hover:bg-brand-300/10 transition cursor-pointer">
-      <input
-        type="file"
-        name={name}
-        onChange={onChange}
-        accept={accept}
-        required
-        className="hidden"
-        id={`${name}-input`}
-      />
-
-      <label
-        htmlFor={`${name}-input`}
-        className="cursor-pointer flex flex-col items-center gap-2"
-      >
-        {icon}
-        <p className="font-medium text-gray-700">Click to upload</p>
-        <p className="text-sm text-gray-500">{accept}</p>
-      </label>
-    </div>
-
-    {file && <p className="text-sm text-green-600 mt-2">✓ {file.name}</p>}
-  </div>
-);
-
-const Checkbox = ({ id, label }) => (
-  <div className="flex items-start gap-3">
-    <input type="checkbox" id={id} required className="mt-1" />
-    <label htmlFor={id} className="text-gray-700">
-      {label}
-    </label>
-  </div>
+const Td = ({ icon, text }) => (
+  <td className="px-6 py-4 flex items-center gap-2">
+    {icon}
+    {text}
+  </td>
 );
