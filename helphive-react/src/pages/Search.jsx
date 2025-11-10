@@ -2,16 +2,19 @@ import { useState, useEffect } from "react";
 import { Search as SearchIcon, Sparkles, MapPin, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// ✅ Load backend URL from .env
+const API = import.meta.env.VITE_BACKEND_URL;
+
 const Search = () => {
   const [workers, setWorkers] = useState([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // 🧠 Fetch workers from backend
+  // ✅ Fetch workers from backend
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/workers");
+        const res = await fetch(`${API}/api/workers`);
         const data = await res.json();
         if (data.success) setWorkers(data.workers);
       } catch (err) {
@@ -20,10 +23,11 @@ const Search = () => {
         setLoading(false);
       }
     };
+
     fetchWorkers();
   }, []);
 
-  // 🔍 Filter by name, city, or service
+  // ✅ Filter workers by name, city, or service
   const filteredWorkers = workers.filter(
     (w) =>
       w.fullName?.toLowerCase().includes(query.toLowerCase()) ||
@@ -33,6 +37,7 @@ const Search = () => {
 
   return (
     <section className="min-h-screen pt-28 pb-16 bg-gradient-to-b from-brand-300/10 via-white to-brand-900/5">
+      
       {/* Header */}
       <div className="max-w-5xl mx-auto text-center px-6 mb-12">
         <div className="inline-flex items-center gap-2 mb-4">
@@ -41,6 +46,7 @@ const Search = () => {
             Find Your Perfect Service
           </h2>
         </div>
+
         <p className="text-gray-600 max-w-2xl mx-auto">
           Search verified professionals from HelpHive — trusted for home,
           repair, and wellness services.
@@ -74,6 +80,7 @@ const Search = () => {
                 key={worker._id}
                 className="group bg-white/90 border border-gray-100 rounded-2xl p-5 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
               >
+                {/* Worker Photo */}
                 <div className="relative w-full h-48 mb-4 rounded-xl overflow-hidden bg-gray-100">
                   {worker.photoUrl ? (
                     <img
@@ -87,23 +94,29 @@ const Search = () => {
                     </div>
                   )}
                 </div>
+
                 <h3 className="text-xl font-semibold text-brand-900">
                   {worker.fullName}
                 </h3>
+
                 <p className="text-sm text-gray-600 mb-2">
                   <span className="font-medium">Service:</span> {worker.service}
                 </p>
+
                 <p className="text-sm text-gray-600 flex items-center gap-1 mb-1">
                   <MapPin className="w-4 h-4 text-brand-900" />
                   {worker.city || "Unknown"}
                 </p>
+
                 <p className="text-sm text-gray-600 mb-3">
                   ₹{worker.hourlyRate}/hr
                 </p>
+
                 <div className="flex items-center gap-1 text-yellow-400 mb-2">
                   <Star className="w-4 h-4 fill-yellow-400" />
-                  <span className="text-sm text-gray-600">(new)</span>
+                  <span className="text-sm text-gray400">(new)</span>
                 </div>
+
                 <Link
                   to={`/provider/${worker._id}`}
                   className="text-brand-900 text-sm font-medium hover:underline"
