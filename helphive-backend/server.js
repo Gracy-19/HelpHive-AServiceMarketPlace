@@ -2,8 +2,6 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
 
 import bookingRoutes from "./routes/bookingRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
@@ -14,11 +12,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Fix __dirname for ES Modules (Vercel-friendly)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// ✅ CORS — allow frontend
+// ✅ CORS
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
@@ -27,7 +21,6 @@ app.use(
 );
 
 app.use(express.json({ limit: "10mb" }));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MongoDB Connection
 mongoose
@@ -46,7 +39,7 @@ app.get("/", (req, res) => {
   res.send("Helphive Backend API is running ✅");
 });
 
-// ✅ Error handling middleware
+// ✅ Error handler
 app.use((err, req, res, next) => {
   console.error("🔥 Server Error:", err);
   res.status(500).json({
@@ -55,9 +48,5 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ ❗ NO app.listen() — Vercel handles server start
-// const PORT = process.env.PORT || 4000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-// ✅ Export the app for Vercel
+// ✅ Export for Vercel serverless
 export default app;
