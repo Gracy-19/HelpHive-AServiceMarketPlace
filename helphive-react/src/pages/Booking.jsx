@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { Calendar, Clock, MapPin, Phone, FileText } from "lucide-react";
-import { useUser } from "@clerk/clerk-react"; // ✅ ADD THIS
+import { useUser } from "@clerk/clerk-react";
+
+// ✅ Load backend URL from .env
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Booking = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useUser(); // ✅ GET CLERK USER
+  const { user } = useUser();
 
   const [worker, setWorker] = useState(null);
   const [workersList, setWorkersList] = useState([]);
@@ -31,10 +34,9 @@ const Booking = () => {
     const fetchData = async () => {
       try {
         if (id) {
-          const res = await fetch(`http://localhost:4000/api/workers/${id}`);
+          const res = await fetch(`${BACKEND_URL}/api/workers/${id}`);
           const data = await res.json();
-          if (!data.success || !data.worker)
-            throw new Error("Worker not found");
+          if (!data.success || !data.worker) throw new Error("Worker not found");
 
           setWorker(data.worker);
 
@@ -45,7 +47,7 @@ const Booking = () => {
             service: data.worker.service,
           }));
         } else {
-          const res = await fetch(`http://localhost:4000/api/workers`);
+          const res = await fetch(`${BACKEND_URL}/api/workers`);
           const data = await res.json();
           if (!data.success) throw new Error("Failed to load providers");
           setWorkersList(data.workers);
@@ -81,7 +83,7 @@ const Booking = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Submit booking (CLERK ID ADDED)
+  // ✅ Submit booking
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -90,7 +92,7 @@ const Booking = () => {
       const amount = hourlyRate * parseInt(formData.duration || 1);
 
       const payload = {
-        clerkId: user?.id || "guest", // ✅ FIX: SEND REAL CLERK ID
+        clerkId: user?.id || "guest",
         providerId: formData.providerId,
         service: formData.service,
         date: formData.date,
@@ -102,7 +104,7 @@ const Booking = () => {
         amount,
       };
 
-      const res = await fetch("http://localhost:4000/api/bookings", {
+      const res = await fetch(`${BACKEND_URL}/api/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -119,7 +121,7 @@ const Booking = () => {
     }
   };
 
-  // ✅ Loading
+  // ✅ Loading UI
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-600 text-lg">
@@ -128,7 +130,7 @@ const Booking = () => {
     );
   }
 
-  // ❌ Error
+  // ✅ Error UI
   if (error) {
     return (
       <div className="text-center py-40 text-gray-600 text-lg">
@@ -144,7 +146,7 @@ const Booking = () => {
     );
   }
 
-  // ✅ Booking confirmed UI
+  // ✅ Booking Confirmation UI
   if (bookingConfirmed) {
     return (
       <div className="max-w-2xl mx-auto px-6 py-24 text-center">
@@ -165,7 +167,7 @@ const Booking = () => {
     );
   }
 
-  // ✅ Render form
+  // ✅ Render Form UI
   return (
     <section className="min-h-screen bg-gradient-to-b from-brand-300/10 via-white to-brand-900/5 py-20 px-6">
       <div className="max-w-2xl mx-auto bg-white/90 backdrop-blur-md border border-gray-100 rounded-3xl shadow-lg p-8 md:p-10">
@@ -178,13 +180,12 @@ const Booking = () => {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-7">
-          {/* ✅ Provider Dropdown */}
+          {/* ✅ Provider dropdown when ID not present */}
           {!id && (
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-700">
                 Choose Provider
               </label>
-
               <select
                 name="providerId"
                 value={formData.providerId}
@@ -340,7 +341,8 @@ const Booking = () => {
               </span>
               <span className="text-lg font-bold text-brand-900">
                 ₹
-                {(worker?.hourlyRate || 500) * parseInt(formData.duration || 1)}
+                {(worker?.hourlyRate || 500) *
+                  parseInt(formData.duration || 1)}
               </span>
             </div>
           </div>
@@ -366,7 +368,7 @@ const Booking = () => {
             </label>
           </div>
 
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
             className="w-full bg-brand-900 text-white py-3.5 rounded-full text-lg"
