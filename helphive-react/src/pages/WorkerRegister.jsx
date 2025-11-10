@@ -14,6 +14,9 @@ import {
 import { useUser } from "@clerk/clerk-react";
 import Navbar from "../components/Navbar";
 
+// ✅ Load backend URL from .env
+const API = import.meta.env.VITE_BACKEND_URL;
+
 const WorkerRegister = () => {
   const { user } = useUser();
 
@@ -58,15 +61,10 @@ const WorkerRegister = () => {
 
       if (user?.id) fd.append("clerkId", user.id);
 
-      const res = await fetch(
-        `${
-          import.meta.env.VITE_API_URL || "http://localhost:4000"
-        }/api/workers`,
-        {
-          method: "POST",
-          body: fd,
-        }
-      );
+      const res = await fetch(`${API}/api/workers`, {
+        method: "POST",
+        body: fd,
+      });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
@@ -89,7 +87,7 @@ const WorkerRegister = () => {
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-brand-300/20 via-white to-brand-900/10 flex flex-col">
-        <Navbar hideExtraLinks /> {/* ✅ Hide Navbar Links */}
+        <Navbar hideExtraLinks />
         <div className="flex-grow flex flex-col justify-center items-center px-6 py-20 text-center">
           <div className="bg-green-100 rounded-full w-24 h-24 flex items-center justify-center mb-6">
             <CheckCircle className="text-green-600 w-12 h-12" />
@@ -109,10 +107,10 @@ const WorkerRegister = () => {
     );
   }
 
-  // ✅ Main Form
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-300/20 via-white to-brand-900/10 text-gray-800">
-      <Navbar hideExtraLinks /> {/* ✅ Hide Navbar Links */}
+      <Navbar hideExtraLinks />
+
       <div className="max-w-5xl mx-auto px-6 py-24">
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
@@ -135,6 +133,7 @@ const WorkerRegister = () => {
         >
           {/* PERSONAL INFORMATION */}
           <SectionHeader icon={<User />} title="Personal Information" />
+
           <div className="grid md:grid-cols-2 gap-6">
             <TextField
               label="Full Name"
@@ -144,6 +143,7 @@ const WorkerRegister = () => {
               onChange={handleChange}
               required
             />
+
             <TextField
               label="Email"
               name="email"
@@ -154,6 +154,7 @@ const WorkerRegister = () => {
               required
               icon={<Mail className="text-gray-400 w-4 h-4" />}
             />
+
             <TextField
               label="Phone Number"
               name="phone"
@@ -164,6 +165,7 @@ const WorkerRegister = () => {
               required
               icon={<Phone className="text-gray-400 w-4 h-4" />}
             />
+
             <TextField
               label="City"
               name="city"
@@ -185,10 +187,8 @@ const WorkerRegister = () => {
           />
 
           {/* PROFESSIONAL INFORMATION */}
-          <SectionHeader
-            icon={<ClipboardList />}
-            title="Professional Information"
-          />
+          <SectionHeader icon={<ClipboardList />} title="Professional Information" />
+
           <div className="grid md:grid-cols-2 gap-6">
             <SelectField
               label="Service Type"
@@ -205,6 +205,7 @@ const WorkerRegister = () => {
                 "Pet Care",
               ]}
             />
+
             <TextField
               label="Hourly Rate (₹)"
               name="hourlyRate"
@@ -214,6 +215,7 @@ const WorkerRegister = () => {
               onChange={handleChange}
               required
             />
+
             <SelectField
               label="Experience (Years)"
               name="experience"
@@ -227,6 +229,7 @@ const WorkerRegister = () => {
                 "5+ years",
               ]}
             />
+
             <TextField
               label="Certifications (optional)"
               name="certifications"
@@ -247,6 +250,7 @@ const WorkerRegister = () => {
 
           {/* DOCUMENTS */}
           <SectionHeader icon={<FileText />} title="Documents & Media" />
+
           <div className="grid md:grid-cols-2 gap-6">
             <FileUpload
               label="Profile Photo"
@@ -256,6 +260,7 @@ const WorkerRegister = () => {
               onChange={handleChange}
               icon={<Upload className="w-5 h-5 text-brand-900" />}
             />
+
             <FileUpload
               label="Proof Documents"
               name="documents"
@@ -284,6 +289,7 @@ const WorkerRegister = () => {
                 </>
               }
             />
+
             <Checkbox
               id="verification"
               label="I confirm that all provided information is accurate and authentic."
@@ -313,8 +319,7 @@ const WorkerRegister = () => {
           </div>
 
           <p className="text-center text-sm text-gray-500 pt-2">
-            Applications are verified within 24–48 hours. You’ll be notified
-            once approved.
+            Applications are verified within 24–48 hours. You’ll be notified once approved.
           </p>
         </form>
       </div>
@@ -400,6 +405,7 @@ const SelectField = ({ label, name, value, onChange, options, required }) => (
 const FileUpload = ({ label, name, accept, file, onChange, icon }) => (
   <div>
     <label className="block mb-2 font-medium text-gray-700">{label}</label>
+
     <div className="border-2 border-dashed border-brand-300 rounded-lg p-6 text-center hover:bg-brand-300/10 transition cursor-pointer">
       <input
         type="file"
@@ -410,6 +416,7 @@ const FileUpload = ({ label, name, accept, file, onChange, icon }) => (
         className="hidden"
         id={`${name}-input`}
       />
+
       <label
         htmlFor={`${name}-input`}
         className="cursor-pointer flex flex-col items-center gap-2"
@@ -419,6 +426,7 @@ const FileUpload = ({ label, name, accept, file, onChange, icon }) => (
         <p className="text-sm text-gray-500">{accept}</p>
       </label>
     </div>
+
     {file && <p className="text-sm text-green-600 mt-2">✓ {file.name}</p>}
   </div>
 );
