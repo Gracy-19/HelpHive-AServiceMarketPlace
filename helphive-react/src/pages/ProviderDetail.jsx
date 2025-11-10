@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MapPin, Star, User } from "lucide-react";
 
+// ✅ Load backend URL from .env
+const API = import.meta.env.VITE_BACKEND_URL;
+
 const ProviderDetail = () => {
   const { id } = useParams();
   const [worker, setWorker] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🧠 Fetch worker data from backend
+  // ✅ Fetch worker data from backend
   useEffect(() => {
     const fetchWorker = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/workers/${id}`);
+        const res = await fetch(`${API}/api/workers/${id}`);
         const data = await res.json();
         if (data.success) setWorker(data.worker);
       } catch (err) {
@@ -20,6 +23,7 @@ const ProviderDetail = () => {
         setLoading(false);
       }
     };
+
     fetchWorker();
   }, [id]);
 
@@ -40,6 +44,7 @@ const ProviderDetail = () => {
   return (
     <section className="min-h-screen bg-gradient-to-b from-brand-300/10 via-white to-brand-900/5 pt-28 pb-16 px-6">
       <div className="max-w-5xl mx-auto bg-white/90 backdrop-blur-md border border-gray-100 rounded-3xl shadow-lg p-8 md:p-12 flex flex-col md:flex-row gap-10 items-center transition-all duration-300">
+        
         {/* Worker Photo */}
         <div className="flex-shrink-0">
           <img
@@ -55,6 +60,7 @@ const ProviderDetail = () => {
             <h2 className="text-3xl md:text-4xl font-extrabold text-brand-900">
               {worker.fullName}
             </h2>
+
             <div className="flex items-center justify-center md:justify-end gap-1 mt-2 md:mt-0">
               {[...Array(5)].map((_, i) => (
                 <Star
@@ -115,6 +121,7 @@ const ProviderDetail = () => {
             All professionals on HelpHive are background-checked and verified.
           </p>
         </div>
+
         <div className="bg-white/80 backdrop-blur-md border border-gray-100 rounded-2xl p-6 shadow hover:-translate-y-1 hover:shadow-lg transition">
           <h3 className="text-lg font-semibold text-brand-900 mb-2">
             Quick Booking
@@ -124,6 +131,7 @@ const ProviderDetail = () => {
             dashboard.
           </p>
         </div>
+
         <div className="bg-white/80 backdrop-blur-md border border-gray-100 rounded-2xl p-6 shadow hover:-translate-y-1 hover:shadow-lg transition">
           <h3 className="text-lg font-semibold text-brand-900 mb-2">
             Customer Support
