@@ -8,14 +8,15 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
+
   const fullName =
     (isLoaded && (user?.fullName || user?.firstName || "User")) || "User";
 
   const [bookings, setBookings] = useState([]);
 
-  // ✅ Fetch all bookings on mount
+  // ✅ Fetch only AFTER Clerk is fully loaded + user exists
   useEffect(() => {
-    if (!user?.id) return;
+    if (!isLoaded || !user?.id) return;
 
     const fetchBookings = async () => {
       try {
@@ -24,16 +25,21 @@ const Dashboard = () => {
         );
 
         const data = await res.json();
-        if (data.success) setBookings(data.bookings);
+
+        if (data.success) {
+          setBookings(data.bookings);
+        } else {
+          console.error("Booking API error:", data.message);
+        }
       } catch (err) {
         console.error("❌ Failed to load bookings:", err);
       }
     };
 
     fetchBookings();
-  }, [user?.id]);
+  }, [isLoaded, user]);
 
-  // ✅ Update status handler
+  // ✅ Update booking status
   const handleMarkCompleted = async (bookingId) => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/bookings/${bookingId}`, {
@@ -170,6 +176,12 @@ const Dashboard = () => {
               ))}
             </tbody>
           </table>
+
+          {bookings.length === 0 && (
+            <p className="text-center py-10 text-gray-500">
+              No bookings yet. Book your first service!
+            </p>
+          )}
         </div>
       </div>
     </div>
