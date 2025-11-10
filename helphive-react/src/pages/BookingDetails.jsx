@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Calendar, Clock, MapPin, Star } from "lucide-react";
 
+// ✅ Load Backend URL from .env
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const BookingDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -13,7 +16,7 @@ const BookingDetails = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/api/bookings/${id}`);
+        const res = await fetch(`${BACKEND_URL}/api/bookings/${id}`);
         const data = await res.json();
         if (data.success) setBooking(data.booking);
       } catch (err) {
@@ -27,7 +30,7 @@ const BookingDetails = () => {
 
   const handleStatusChange = async (status) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/bookings/${id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/bookings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -44,7 +47,7 @@ const BookingDetails = () => {
 
   const handleRatingSubmit = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/api/bookings/${id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/bookings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rating, review }),
@@ -91,12 +94,15 @@ const BookingDetails = () => {
           {booking.service} —{" "}
           {booking.providerName || booking.providerId?.fullName}
         </h2>
+
         <p className="flex items-center gap-2 text-gray-600 mb-2">
           <Calendar size={16} /> {booking.date} at {booking.time}
         </p>
+
         <p className="flex items-center gap-2 text-gray-600 mb-2">
           <MapPin size={16} /> {booking.address}
         </p>
+
         <p className="text-gray-600 mb-2">Amount: ₹{booking.amount}</p>
         <p className="text-gray-600 mb-2">Status: {booking.status}</p>
       </div>
@@ -109,6 +115,7 @@ const BookingDetails = () => {
         >
           Mark as Completed
         </button>
+
         <button
           onClick={() => handleStatusChange("Cancelled")}
           className="bg-red-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-red-700"
@@ -123,6 +130,7 @@ const BookingDetails = () => {
           <h3 className="text-xl font-semibold mb-4 text-gray-800">
             Rate your service
           </h3>
+
           <div className="flex items-center gap-2 mb-4">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
@@ -137,6 +145,7 @@ const BookingDetails = () => {
               />
             ))}
           </div>
+
           <textarea
             placeholder="Write your feedback..."
             value={review}
@@ -144,6 +153,7 @@ const BookingDetails = () => {
             rows="3"
             className="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-brand-300 outline-none mb-4"
           />
+
           <button
             onClick={handleRatingSubmit}
             className="bg-brand-900 text-white px-6 py-2 rounded-full font-semibold hover:bg-brand-700 transition"
