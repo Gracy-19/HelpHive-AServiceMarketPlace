@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Star, MapPin, User } from "lucide-react";
 
+// ✅ Load backend URL from .env
+const API = import.meta.env.VITE_BACKEND_URL;
+
 const Providers = () => {
   const [workers, setWorkers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,8 +12,9 @@ const Providers = () => {
   useEffect(() => {
     const fetchWorkers = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/workers");
+        const res = await fetch(`${API}/api/workers`);
         const data = await res.json();
+
         if (data.success) {
           setWorkers(data.workers);
         }
@@ -20,6 +24,7 @@ const Providers = () => {
         setLoading(false);
       }
     };
+
     fetchWorkers();
   }, []);
 
@@ -33,14 +38,14 @@ const Providers = () => {
   return (
     <section className="min-h-screen bg-gradient-to-b from-brand-300/10 via-white to-brand-900/5 pt-24 pb-16">
       <div className="max-w-6xl mx-auto px-6">
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-brand-900 mb-3">
             Our Trusted Service Providers
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Find verified professionals near you — from home help to beauty and
-            wellness.
+            Find verified professionals near you — from home help to beauty and wellness.
           </p>
         </div>
 
@@ -69,10 +74,12 @@ const Providers = () => {
                   <h3 className="text-xl font-bold text-brand-900">
                     {worker.fullName}
                   </h3>
+
                   <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
                     <User className="w-4 h-4 text-brand-300" />
                     {worker.service}
                   </p>
+
                   <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
                     <MapPin className="w-4 h-4 text-brand-300" />
                     {worker.city || "Not specified"}
@@ -106,6 +113,7 @@ const Providers = () => {
                   >
                     Book Now
                   </Link>
+
                   {worker.documentsUrl && (
                     <a
                       href={worker.documentsUrl}
