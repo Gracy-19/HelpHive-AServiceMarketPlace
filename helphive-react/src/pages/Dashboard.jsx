@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
-import { Calendar, MapPin, User, ArrowRight } from "lucide-react";
+import { Calendar, MapPin, User } from "lucide-react";
+
+// ✅ Load backend URL from .env
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
@@ -12,10 +15,12 @@ const Dashboard = () => {
 
   // ✅ Fetch all bookings on mount
   useEffect(() => {
+    if (!user?.id) return;
+
     const fetchBookings = async () => {
       try {
         const res = await fetch(
-          `http://localhost:4000/api/bookings?clerkId=${user.id}`
+          `${BACKEND_URL}/api/bookings?clerkId=${user.id}`
         );
 
         const data = await res.json();
@@ -24,20 +29,22 @@ const Dashboard = () => {
         console.error("❌ Failed to load bookings:", err);
       }
     };
+
     fetchBookings();
-  }, []);
+  }, [user?.id]);
 
   // ✅ Update status handler
   const handleMarkCompleted = async (bookingId) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/bookings/${bookingId}`, {
+      const res = await fetch(`${BACKEND_URL}/api/bookings/${bookingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "Completed" }),
       });
+
       const data = await res.json();
+
       if (data.success) {
-        // Update UI immediately
         setBookings((prev) =>
           prev.map((b) =>
             b._id === bookingId ? { ...b, status: "Completed" } : b
@@ -106,6 +113,7 @@ const Dashboard = () => {
                 <th className="px-6 py-3 text-left font-semibold">Action</th>
               </tr>
             </thead>
+
             <tbody>
               {bookings.map((booking) => (
                 <tr
@@ -116,18 +124,23 @@ const Dashboard = () => {
                     <User size={16} className="text-brand-900" />
                     {booking.providerId?.fullName || "N/A"}
                   </td>
+
                   <td className="px-6 py-4">{booking.service}</td>
+
                   <td className="px-6 py-4 flex items-center gap-2">
                     <Calendar size={15} className="text-gray-500" />
                     {booking.date} • {booking.time}
                   </td>
+
                   <td className="px-6 py-4 flex items-center gap-2">
                     <MapPin size={15} className="text-gray-500" />
                     {booking.providerId?.city || "—"}
                   </td>
+
                   <td className="px-6 py-4 font-semibold text-brand-900">
                     ₹{booking.amount}
                   </td>
+
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 text-xs rounded-full font-semibold ${getStatusColor(
@@ -141,7 +154,9 @@ const Dashboard = () => {
                   {/* ✅ Action Button */}
                   <td className="px-6 py-4">
                     {booking.status === "Completed" ? (
-                      <span className="text-green-600 font-semibold">Done ✅</span>
+                      <span className="text-green-600 font-semibold">
+                        Done ✅
+                      </span>
                     ) : (
                       <button
                         onClick={() => handleMarkCompleted(booking._id)}
