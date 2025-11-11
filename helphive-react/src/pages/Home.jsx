@@ -61,7 +61,7 @@ const Home = () => {
           </div>
         </div>
       </main>
-                                                      
+
       {/* Features Section */}
       <section className="bg-brand-900 text-white py-16 px-6 md:px-20 rounded-t-3xl shadow-inner">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
@@ -128,10 +128,10 @@ const Home = () => {
             by offering your skills and services through HelpHive.
           </p>
           <Link
-            to="/worker-register"
-            className="inline-block px-8 py-3 bg-brand-900 text-white font-semibold rounded-full shadow-md hover:bg-brand-300 hover:text-brand-900 transition-all duration-300"
+            to="/worker-login"
+            className="bg-brand-900 text-white px-5 py-3 rounded-full shadow-md hover:bg-brand-300 hover:text-brand-900"
           >
-            Register as a Worker
+            Register as Worker
           </Link>
         </div>
       </section>
