@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Calendar, MapPin, Phone, User, FileText } from "lucide-react";
 
-const API = "http://localhost:4000";
+const API = import.meta.env.VITE_API_URL;
 
 const WorkerDashboard = () => {
   const { user } = useUser();
