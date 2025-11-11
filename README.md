@@ -1,4 +1,4 @@
-# 🐝 HelpHive – Service Marketplace
+# 🐝 HelpHive – A Service Marketplace
 
 A modern full-stack platform that connects customers with skilled service providers — tutors, plumbers, electricians, cleaners, mechanics, and more.
 
