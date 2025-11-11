@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import WorkerProfileForm from "./WorkerProfileForm";
 import WorkerDashboardUI from "./WorkerDashboardUI";
 
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 const WorkerDashboard = () => {
   const { user, isLoaded } = useUser();

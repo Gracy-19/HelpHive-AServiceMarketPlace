@@ -3,7 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import { MapPin, Mail, Phone } from "lucide-react";
 
 // ✅ Load backend URL from .env file
-const API = import.meta.env.VITE_BACKEND_URL;
+const API = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 const Profile = () => {
   const { user } = useUser();

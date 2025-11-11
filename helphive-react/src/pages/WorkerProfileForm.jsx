@@ -10,7 +10,7 @@ import {
   FileText,
 } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 const WorkerProfileForm = ({
   worker = null,

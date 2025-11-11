@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { MapPin, Star, User } from "lucide-react";
 
 // ✅ Load backend URL from .env
-const API = import.meta.env.VITE_BACKEND_URL;
+const API = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 const ProviderDetail = () => {
   const { id } = useParams();

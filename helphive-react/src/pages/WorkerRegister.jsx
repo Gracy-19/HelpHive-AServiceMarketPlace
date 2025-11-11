@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Calendar, MapPin, Phone, User, FileText } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 const WorkerDashboard = () => {
   const { user } = useUser();
@@ -147,4 +147,4 @@ const WorkerDashboard = () => {
   );
 };
 
-export default WorkerDashboard; use .env for url thing
+export default WorkerDashboard;

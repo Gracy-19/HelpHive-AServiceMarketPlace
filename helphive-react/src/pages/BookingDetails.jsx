@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { Calendar, Clock, MapPin, Star } from "lucide-react";
 
 // ✅ Load Backend URL from .env
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 const BookingDetails = () => {
   const { id } = useParams();

@@ -4,7 +4,7 @@ import { useUser } from "@clerk/clerk-react";
 import { Calendar, MapPin, User } from "lucide-react";
 
 // ✅ Load backend URL from .env
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
